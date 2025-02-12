@@ -5,6 +5,8 @@ import yt_dlp
 from datetime import datetime, timedelta
 import time
 from threading import Thread
+import subprocess
+
 
 from werkzeug.utils import secure_filename
 
@@ -26,7 +28,7 @@ from platforms.pinterest import pinterest_info, pinterest_download, pinterest_do
 app = Flask(__name__)
 CORS(app, 
      resources={r"/api/*": {
-         "origins": ["https://vidapp-seven.vercel.app", "http://localhost:3000"],
+         "origins": ["chrome-extension://*","https://vidapp-seven.vercel.app", "http://localhost:3000"],
          "supports_credentials": True,
          "allow_headers": ["Content-Type", "Authorization", "Cookie"],
          "methods": ["GET", "POST", "OPTIONS"]
@@ -273,6 +275,8 @@ if __name__ == '__main__':
     cleanup_thread.start()
     
     app.run(debug=True)
+    result = subprocess.run(["ffmpeg", "-version"], capture_output=True, text=True)
+    print(result.stdout)
 
 print("Flask app is ready to run!")
 
