@@ -2,6 +2,9 @@ import os
 from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
 import yt_dlp
+from datetime import datetime, timedelta
+import time
+from threading import Thread
 
 from werkzeug.utils import secure_filename
 
@@ -206,7 +209,32 @@ def snapchat_download_default_endpoint():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+def cleanup_downloads():
+    """Delete files older than 24 hours from downloads folder"""
+    while True:
+        try:
+            downloads_dir = os.path.join(os.path.dirname(__file__), 'downloads')
+            if not os.path.exists(downloads_dir):
+                os.makedirs(downloads_dir)
+                
+            current_time = datetime.now()
+            for filename in os.listdir(downloads_dir):
+                filepath = os.path.join(downloads_dir, filename)
+                file_modified_time = datetime.fromtimestamp(os.path.getmtime(filepath))
+                if current_time - file_modified_time > timedelta(hours=24):
+                    os.remove(filepath)
+                    print(f"Deleted old file: {filename}")
+        except Exception as e:
+            print(f"Error in cleanup: {str(e)}")
+        
+        # Sleep for 1 hour before next cleanup
+        time.sleep(3600)
+
 if __name__ == '__main__':
+    # Start cleanup thread
+    cleanup_thread = Thread(target=cleanup_downloads, daemon=True)
+    cleanup_thread.start()
+    
     app.run(debug=True)
 
 print("Flask app is ready to run!")
