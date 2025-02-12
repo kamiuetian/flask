@@ -1,23 +1,18 @@
 import yt_dlp
 import os
+from utils.download_options import get_ydl_opts
+from middleware.cookies_middleware import with_cookies
 
-def snapchat_info(url):
-    """Get video information from Snapchat URL"""
-    ydl_opts = {
-        'quiet': True,
-        'no_warnings': True,
-        'extract_flat': False  # Changed to False to get full info
-    }
-    
+@with_cookies
+def snapchat_info(url, cookies=None):
+    ydl_opts = get_ydl_opts(cookies=cookies)
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
             info = ydl.extract_info(url, download=False)
             
-            # Check if we got valid info
             if not info:
                 return {'error': 'Could not fetch video information'}
             
-            # Create formats list only if formats exist
             formats = []
             if 'formats' in info:
                 formats = [
@@ -40,14 +35,9 @@ def snapchat_info(url):
         except Exception as e:
             return {'error': f'Error processing Snapchat URL: {str(e)}'}
 
-def snapchat_download(url, format_id):
-    """Download Snapchat video with specific format"""
-    ydl_opts = {
-        'quiet': True,
-        'no_warnings': True,
-        'format': format_id,
-        'outtmpl': 'downloads/%(title)s.%(ext)s'
-    }
+@with_cookies
+def snapchat_download(url, format_id, cookies=None):
+    ydl_opts = get_ydl_opts(format_id, cookies)
     
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
@@ -57,8 +47,6 @@ def snapchat_download(url, format_id):
             
             filename = ydl.prepare_filename(info)
             if not os.path.exists(filename):
-                # If the file doesn't exist with the prepared filename,
-                # try to find it with a different extension
                 base_path = os.path.splitext(filename)[0]
                 for ext in ['.mp4', '.mov', '.webm']:
                     alt_filename = base_path + ext
@@ -74,10 +62,6 @@ def snapchat_download(url, format_id):
         except Exception as e:
             raise Exception(f"Error downloading Snapchat video: {str(e)}")
 
-def snapchat_download_default(url):
-    """Download Snapchat video with best quality"""
-    try:
-        # For Snapchat, we'll always use best quality since formats are not available
-        return snapchat_download(url, 'best')
-    except Exception as e:
-        raise Exception(f"Error downloading Snapchat video: {str(e)}")
+@with_cookies
+def snapchat_download_default(url, cookies=None):
+    return snapchat_download(url, 'best', cookies=cookies)

@@ -166,6 +166,7 @@ def tiktok_download_default_endpoint():
         return send_file(file_path, as_attachment=True)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 @app.route('/api/snapchat', methods=['GET'])
 @limiter.limit("10 per minute") if limiter else lambda x: x
 def snapchat_endpoint():
