@@ -38,27 +38,14 @@ def snapchat_info(url, cookies=None):
 @with_cookies
 def snapchat_download(url, format_id, cookies=None):
     ydl_opts = get_ydl_opts(format_id, cookies)
+    if format_id != 'best':
+        ydl_opts['format'] = f'{format_id}+bestaudio/best'
     
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
             info = ydl.extract_info(url, download=True)
-            if not info:
-                raise Exception("Could not download video")
-            
             filename = ydl.prepare_filename(info)
-            if not os.path.exists(filename):
-                base_path = os.path.splitext(filename)[0]
-                for ext in ['.mp4', '.mov', '.webm']:
-                    alt_filename = base_path + ext
-                    if os.path.exists(alt_filename):
-                        filename = alt_filename
-                        break
-            
-            if not os.path.exists(filename):
-                raise Exception("Download failed or file not found")
-                
-            return filename
-            
+            return os.path.abspath(filename)
         except Exception as e:
             raise Exception(f"Error downloading Snapchat video: {str(e)}")
 

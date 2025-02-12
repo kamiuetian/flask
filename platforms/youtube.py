@@ -35,6 +35,10 @@ def youtube_info(url, cookies=None):
 @with_cookies
 def youtube_download(url, format_id, cookies=None):
     ydl_opts = get_ydl_opts(format_id, cookies)
+    # Add specific format handling for YouTube
+    if format_id != 'best':
+        ydl_opts['format'] = f'{format_id}+bestaudio/best'  # Merge video with best audio
+    
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
             info = ydl.extract_info(url, download=True)

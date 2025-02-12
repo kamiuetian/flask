@@ -35,6 +35,9 @@ def facebook_info(url, cookies=None):
 @with_cookies
 def facebook_download(url, format_id, cookies=None):
     ydl_opts = get_ydl_opts(format_id, cookies)
+    if format_id != 'best':
+        ydl_opts['format'] = f'{format_id}+bestaudio/best'
+    
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
             info = ydl.extract_info(url, download=True)

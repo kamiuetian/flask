@@ -21,6 +21,7 @@ from platforms.facebook import facebook_info, facebook_download, facebook_downlo
 from platforms.instagram import instagram_info, instagram_download, instagram_download_default
 from platforms.tiktok import tiktok_info, tiktok_download, tiktok_download_default
 from platforms.snapchat import snapchat_info, snapchat_download, snapchat_download_default
+from platforms.pinterest import pinterest_info, pinterest_download, pinterest_download_default
 
 app = Flask(__name__)
 CORS(app, 
@@ -205,6 +206,42 @@ def snapchat_download_default_endpoint():
         return jsonify({"error": "URL parameter is required"}), 400
     try:
         file_path = snapchat_download_default(url)
+        return send_file(file_path, as_attachment=True)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/pinterest', methods=['GET'])
+@limiter.limit("10 per minute") if limiter else lambda x: x
+def pinterest_endpoint():
+    url = request.args.get('url')
+    if not url:
+        return jsonify({"error": "URL parameter is required"}), 400
+    result = pinterest_info(url)
+    if 'error' in result:
+        return jsonify(result), 400
+    return jsonify(result)
+
+@app.route('/api/pinterest/download', methods=['GET'])
+@limiter.limit("5 per minute") if limiter else lambda x: x
+def pinterest_download_endpoint():
+    url = request.args.get('url')
+    format_id = request.args.get('format')
+    if not url or not format_id:
+        return jsonify({"error": "URL and format parameters are required"}), 400
+    try:
+        file_path = pinterest_download(url, format_id)
+        return send_file(file_path, as_attachment=True)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/pinterest/download-default', methods=['GET'])
+@limiter.limit("5 per minute") if limiter else lambda x: x
+def pinterest_download_default_endpoint():
+    url = request.args.get('url')
+    if not url:
+        return jsonify({"error": "URL parameter is required"}), 400
+    try:
+        file_path = pinterest_download_default(url)
         return send_file(file_path, as_attachment=True)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
