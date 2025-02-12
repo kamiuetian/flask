@@ -20,7 +20,13 @@ from platforms.tiktok import tiktok_info, tiktok_download, tiktok_download_defau
 from platforms.snapchat import snapchat_info, snapchat_download, snapchat_download_default
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, 
+     resources={r"/api/*": {
+         "origins": ["https://vidapp-seven.vercel.app", "http://localhost:3000"],
+         "supports_credentials": True,
+         "allow_headers": ["Content-Type", "Authorization", "Cookie"],
+         "methods": ["GET", "POST", "OPTIONS"]
+     }})
 
 if limiter_available:
     limiter = Limiter(
