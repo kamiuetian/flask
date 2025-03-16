@@ -24,11 +24,12 @@ from platforms.instagram import instagram_info, instagram_download, instagram_do
 from platforms.tiktok import tiktok_info, tiktok_download, tiktok_download_default
 from platforms.snapchat import snapchat_info, snapchat_download, snapchat_download_default
 from platforms.pinterest import pinterest_info, pinterest_download, pinterest_download_default
+from platforms.reddit import get_reddit_video_info, download_reddit_video
 
 app = Flask(__name__)
 CORS(app, 
      resources={r"/api/*": {
-         "origins": ["chrome-extension://*","https://vidapp-seven.vercel.app", "http://localhost:3000"],
+         "origins": ["chrome-extension://*","https://vidapp-seven.vercel.app", "http://localhost:3000", "http://localhost:8081"],
          "supports_credentials": True,
          "allow_headers": ["Content-Type", "Authorization", "Cookie"],
          "methods": ["GET", "POST", "OPTIONS"]
@@ -247,6 +248,45 @@ def pinterest_download_default_endpoint():
         return send_file(file_path, as_attachment=True)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/reddit', methods=['GET'])
+def reddit_info():
+    url = request.args.get('url')
+    if not url:
+        return jsonify({'error': 'URL parameter is required'}), 400
+    
+    info = get_reddit_video_info(url)
+    if info:
+        return jsonify(info)
+    else:
+        return jsonify({'error': 'Failed to fetch video info'}), 400
+
+@app.route('/api/reddit/download', methods=['GET'])
+def reddit_download():
+    url = request.args.get('url')
+    format_id = request.args.get('format')
+    
+    if not url:
+        return jsonify({'error': 'URL parameter is required'}), 400
+    
+    try:
+        file_path = download_reddit_video(url, format_id)
+        return send_file(file_path, as_attachment=True)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/reddit/download-default', methods=['GET'])
+def reddit_download_default():
+    url = request.args.get('url')
+    
+    if not url:
+        return jsonify({'error': 'URL parameter is required'}), 400
+    
+    try:
+        file_path = download_reddit_video(url)
+        return send_file(file_path, as_attachment=True)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 def cleanup_downloads():
     """Delete files older than 24 hours from downloads folder"""

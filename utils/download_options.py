@@ -1,24 +1,17 @@
 def get_ydl_opts(format_id=None, cookies=None):
     opts = {
-        'quiet': True,
-        'no_warnings': True,
-        'format': format_id or 'best',
+        'format': format_id if format_id else 'best',
         'outtmpl': 'downloads/%(title)s.%(ext)s',
-        'merge_output_format': 'mp4',  # Force merge to MP4
-        'postprocessors': [{
-            'key': 'FFmpegVideoConvertor',
-            'preferedformat': 'mp4',
-        }],
-        # Add format sorting preferences
-        'format_sort': [
-            'res:1080',
-            'ext:mp4:m4a',
-            'acodec:mp4a.40.2',
-            'vcodec:h264',
-        ],
+        'noplaylist': True,
+        'quiet': False,
+        'no_warnings': False,
+        'ignoreerrors': False,
+        'merge_output_format': 'mp4',  # Force mp4 output
+        'prefer_ffmpeg': True,  # Use ffmpeg for merging
     }
     
+    # Add cookies if provided
     if cookies:
-        opts['cookiesfrombrowser'] = ('chrome', None, None, cookies)
+        opts['cookiefile'] = cookies
     
     return opts
