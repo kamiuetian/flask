@@ -29,7 +29,14 @@ from platforms.reddit import get_reddit_video_info, download_reddit_video
 app = Flask(__name__)
 CORS(app, 
      resources={r"/api/*": {
-         "origins": ["chrome-extension://*","https://vidapp-seven.vercel.app", "http://localhost:3000", "http://localhost:8081"],
+         "origins": [
+             "chrome-extension://*",
+             "https://vidapp-seven.vercel.app", 
+             "http://localhost:3000", 
+             "http://localhost:8081",
+             "https://www.vidsdownloader.com",   # Add your production domain
+             "https://vidsdownloader.com"        # Also include non-www version
+         ],
          "supports_credentials": True,
          "allow_headers": ["Content-Type", "Authorization", "Cookie"],
          "methods": ["GET", "POST", "OPTIONS"]
@@ -287,6 +294,16 @@ def reddit_download_default():
         return send_file(file_path, as_attachment=True)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, Cookie'
+    return response
+
+# Apply this to your Flask app
+app.after_request(add_cors_headers)
 
 def cleanup_downloads():
     """Delete files older than 24 hours from downloads folder"""
