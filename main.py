@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify, request, send_file
+from flask import Flask, jsonify, request, send_file, make_response
 from flask_cors import CORS
 import yt_dlp
 from datetime import datetime, timedelta
@@ -54,6 +54,16 @@ else:
 @app.errorhandler(Exception)
 def handle_error(error):
     return jsonify({"error": str(error)}), 500
+
+@app.before_request
+def handle_preflight():
+    if request.method == "OPTIONS":
+        response = make_response()
+        response.headers.add("Access-Control-Allow-Origin", request.headers.get('Origin', '*'))
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization,Cookie")
+        response.headers.add("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+        response.headers.add("Access-Control-Allow-Credentials", "true")
+        return response
 
 @app.route('/api/youtube', methods=['GET'])
 @limiter.limit("10 per minute") if limiter else lambda x: x
@@ -331,9 +341,9 @@ if __name__ == '__main__':
     cleanup_thread = Thread(target=cleanup_downloads, daemon=True)
     cleanup_thread.start()
     
-    app.run(debug=True)
-    result = subprocess.run(["ffmpeg", "-version"], capture_output=True, text=True)
-    print(result.stdout)
-
-print("Flask app is ready to run!")
+    # Get port from environment variable for Railway
+    port = int(os.environ.get('PORT', 8080))
+    
+    # Bind to 0.0.0.0 (all network interfaces) - CRITICAL for Railway
+    app.run(host='0.0.0.0', port=port)
 
